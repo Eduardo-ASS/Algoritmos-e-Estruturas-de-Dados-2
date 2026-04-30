@@ -4,54 +4,97 @@
 #include "ordenacao.h"
 
 // ===================================================================
-// QUICKSORT PRO (Corrigindo o Stack Overflow)
+// QUICKSORT PRO (Mediana de Três)
 // ===================================================================
 
-int particionaPRO(r *vet, int inicio, int fim, met *m) {
-    
-    // Solução da versão PRO: pegar o pivô do meio do vetor
+// Troca duas posições do vetor e conta as movimentações
+void trocaPro(r *a, r *b, met *m) {
+    r tmp = *a;
+    *a = *b;
+    *b = tmp;
+    m->movimentacoes += 2;
+}
+
+// A técnica da Mediana de Três: garante que o pior caso seja evitado
+int medianaDeTresPro(r *vet, int inicio, int fim, met *m) {
     int meio = inicio + (fim - inicio) / 2;
-    
-    // Agora a gente joga esse pivô do meio lá para a primeira posição
-    r aux_pivo = vet[inicio];
-    vet[inicio] = vet[meio];
-    vet[meio] = aux_pivo;
-    m->movimentacoes += 3;
 
-    int pivo = vet[inicio].user_id;
-    int i = inicio + 1;
-
-    // Percorre o vetor inteiro a partir do pivô
-    for (int j = inicio + 1; j <= fim; j++) {
-        m->comparacoes++;
-        
-        // Se achou alguém menor que o pivô, joga para o lado esquerdo
-        if (vet[j].user_id <= pivo) {
-            r tmp = vet[i];
-            vet[i] = vet[j];
-            vet[j] = tmp;
-            m->movimentacoes += 3;
-            i++;
-        }
+    // Coloca os três elementos (início, meio e fim) em ordem crescente
+    m->comparacoes++;
+    if (vet[inicio].user_id > vet[meio].user_id) {
+        trocaPro(&vet[inicio], &vet[meio], m);
     }
-    
-    // Agora pegamos o pivô que estava no início e colocamos ele no lugar certo
-    r tmp = vet[inicio];
-    vet[inicio] = vet[i - 1];
-    vet[i - 1] = tmp;
-    m->movimentacoes += 3;
 
-    return i - 1;
+    m->comparacoes++;
+    if (vet[inicio].user_id > vet[fim].user_id) {
+        trocaPro(&vet[inicio], &vet[fim], m);
+    }
+
+    m->comparacoes++;
+    if (vet[meio].user_id > vet[fim].user_id) {
+        trocaPro(&vet[meio], &vet[fim], m);
+    }
+
+    // O elemento do meio agora é a nossa mediana (o pivô ideal).
+    // Escondemos ele na penúltima posição para particionar o resto.
+    trocaPro(&vet[meio], &vet[fim - 1], m);
+
+    return vet[fim - 1].user_id;
+}
+
+int particionaPRO(r *vet, int inicio, int fim, met *m) {
+    // Escolhe o pivô usando a função da Mediana de Três
+    int pivo = medianaDeTresPro(vet, inicio, fim, m);
+    
+    // Nossos ponteiros de varredura
+    int i = inicio;
+    int j = fim - 1;
+
+    while (1) {
+        // i avança procurando alguém maior que o pivô
+        do {
+            i++;
+            m->comparacoes++;
+        } while (vet[i].user_id < pivo);
+
+        // j recua procurando alguém menor que o pivô
+        do {
+            j--;
+            m->comparacoes++;
+        } while (vet[j].user_id > pivo);
+
+        // Se os ponteiros se cruzarem, acabou a partição
+        if (i >= j) {
+            break;
+        }
+
+        // Se não cruzou, troca os elementos que estão do lado errado
+        trocaPro(&vet[i], &vet[j], m);
+    }
+
+    // Devolve o pivô para o lugar definitivo dele
+    trocaPro(&vet[i], &vet[fim - 1], m);
+
+    return i;
 }
 
 void quickSortPRO(r *vet, int inicio, int fim, met *m) {
     // Condição de parada da recursão
-    // Se o pedaço do vetor tiver 1 ou 0 elementos, não precisa fazer mais nada
     if (inicio >= fim) {
         return;
     }
+
+    // CORREÇÃO: A Mediana de Três exige pelo menos 3 elementos!
+    // Se o pedaço tiver exatamente 2 elementos, ordena direto e encerra.
+    if (fim - inicio == 1) {
+        m->comparacoes++;
+        if (vet[inicio].user_id > vet[fim].user_id) {
+            trocaPro(&vet[inicio], &vet[fim], m);
+        }
+        return;
+    }
     
-    // Acha a posição do pivô e depois manda ordenar as duas metades que sobraram
+    // Se tiver 3 ou mais elementos, particiona normalmente
     int p = particionaPRO(vet, inicio, fim, m);
     quickSortPRO(vet, inicio, p - 1, m);
     quickSortPRO(vet, p + 1, fim, m);
@@ -62,8 +105,6 @@ void quickSortPRO(r *vet, int inicio, int fim, met *m) {
 // ===================================================================
 
 int verificaEstabilidade(r *vet, int tamanho) {
-    
-    // Checa se o algoritmo bagunçou a ordem de chegada das pessoas que têm o mesmo ID.
     for (int i = 0; i < tamanho - 1; i++) {
         if (vet[i].user_id == vet[i+1].user_id && vet[i].chegada > vet[i+1].chegada) {
             return 0;
@@ -73,8 +114,6 @@ int verificaEstabilidade(r *vet, int tamanho) {
 }
 
 int verificaSeEstaOrdenado(r *vet, int tamanho) {
-    // Varre o vetor procurando algum número maior antes de um menor.
-    // Se achar, o algoritmo falhou.
     for (int i = 0; i < tamanho - 1; i++) {
         if (vet[i].user_id > vet[i+1].user_id) {
             return 0;
@@ -85,11 +124,8 @@ int verificaSeEstaOrdenado(r *vet, int tamanho) {
 
 void imprimePrimeiros(r *vet, int tamanho) {
     printf("                   Visuais (5 primeiros): ");
-    
     int limite;
     
-    // Se o vetor for muito pequeno (menos de 5 posições), 
-    // a gente ajusta o limite para não tentar ler memória que não existe.
     if (tamanho < 5) {
         limite = tamanho;
     } else {
@@ -109,21 +145,19 @@ void avaliaQuickSortPRO(int tamanho) {
 
     clock_t inicio_timer, fim_timer; 
     double tempo_total; 
-    long long int comp_total, mov_total;  // Variável "long long" para comparações muito grandes 
+    long long int comp_total, mov_total; 
 
-    // Teste 1: Vetores Aleatórios (Calculando a média de 30)
+    // --- TESTE 1: ALEATÓRIO ---
     tempo_total = 0; comp_total = 0; mov_total = 0;
     
     for (int i = 0; i < 30; i++) {
         r *vetor = geraAleatorios(tamanho, i + 1); 
         met *m = alocaMetricas();
         
-        // Liga o cronômetro, ordena, e desliga
         inicio_timer = clock(); 
         quickSortPRO(vetor, 0, tamanho - 1, m); 
         fim_timer = clock();
         
-        // Print só no primeiro vetor gerado pra não poluir o terminal
         if (i == 0) {
             if (verificaEstabilidade(vetor, tamanho) == 1) {
                 printf("[Estabilidade]     Status: ESTAVEL (ALERTA!)\n");
@@ -147,11 +181,10 @@ void avaliaQuickSortPRO(int tamanho) {
         liberaMetricas(m);
     }
     
-    // Mostra as médias calculadas
     printf("                   Tempo Medio: %.3f ms | Comp: %lld | Mov: %lld\n", 
            tempo_total / 30.0, comp_total / 30, mov_total / 30);
 
-    // Teste 2: Vetor Crescente (Antes acontecia o Stack Overflow)
+    // --- TESTE 2: CRESCENTE ---
     r *vet_cres = geraOrdenados(tamanho, 42); 
     met *m_cres = alocaMetricas();
     
@@ -172,7 +205,7 @@ void avaliaQuickSortPRO(int tamanho) {
     liberaVetor(vet_cres); 
     liberaMetricas(m_cres);
 
-    // Teste 3: Vetor Decrescente
+    // --- TESTE 3: DECRESCENTE ---
     r *vet_decres = geraDecrescente(tamanho, 42); 
     met *m_decres = alocaMetricas();
     
@@ -193,7 +226,7 @@ void avaliaQuickSortPRO(int tamanho) {
     liberaVetor(vet_decres); 
     liberaMetricas(m_decres);
 
-    // Teste 4: Vetor Quase Ordenado (Média de 30 rodadas)
+    // --- TESTE 4: QUASE ORDENADO ---
     tempo_total = 0; comp_total = 0; mov_total = 0;
     
     for (int i = 0; i < 30; i++) {
@@ -225,7 +258,6 @@ void avaliaQuickSortPRO(int tamanho) {
 }
 
 int main() {
-    // Array com os cenários
     int tamanhos[] = {1000, 10000, 100000, 1000000, 10000000};
     int num_tamanhos = sizeof(tamanhos) / sizeof(tamanhos[0]);
     
