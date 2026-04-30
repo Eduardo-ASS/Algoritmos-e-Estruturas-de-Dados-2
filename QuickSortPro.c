@@ -42,33 +42,33 @@ int medianaDeTresPro(r *vet, int inicio, int fim, met *m) {
 }
 
 int particionaPRO(r *vet, int inicio, int fim, met *m) {
-    // Escolhe o pivô usando a função da Mediana de Três
     int pivo = medianaDeTresPro(vet, inicio, fim, m);
     
-    // Nossos ponteiros de varredura
     int i = inicio;
     int j = fim - 1;
+    int continua = 1;
 
-    while (1) {
-        // i avança procurando alguém maior que o pivô
-        do {
+    while (continua) {
+
+        i++;
+        m->comparacoes++;
+        while (vet[i].user_id < pivo) {
             i++;
             m->comparacoes++;
-        } while (vet[i].user_id < pivo);
-
-        // j recua procurando alguém menor que o pivô
-        do {
-            j--;
-            m->comparacoes++;
-        } while (vet[j].user_id > pivo);
-
-        // Se os ponteiros se cruzarem, acabou a partição
-        if (i >= j) {
-            break;
         }
 
-        // Se não cruzou, troca os elementos que estão do lado errado
-        trocaPro(&vet[i], &vet[j], m);
+        j--;
+        m->comparacoes++;
+        while (vet[j].user_id > pivo) {
+            j--;
+            m->comparacoes++;
+        }
+
+        if (i < j) {
+            trocaPro(&vet[i], &vet[j], m);
+        } else {
+            continua = 0;
+        }
     }
 
     // Devolve o pivô para o lugar definitivo dele
@@ -139,7 +139,7 @@ void imprimePrimeiros(r *vet, int tamanho) {
 
 void avaliaQuickSortPRO(int tamanho) {
     printf("\n==================================================\n");
-    printf("   QUICKSORT PRO (CORRIGIDO) - Avaliacao para N = %d\n", tamanho);
+    printf("   QUICKSORT PRO - Avaliacao para N = %d\n", tamanho);
     printf("==================================================\n");
 
     clock_t inicio_timer, fim_timer; 
