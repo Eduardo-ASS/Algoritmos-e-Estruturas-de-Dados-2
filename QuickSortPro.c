@@ -15,7 +15,7 @@ void trocaPro(r *a, r *b, met *m) {
     m->movimentacoes += 2;
 }
 
-// A técnica da Mediana de Três: garante que o pior caso seja evitado
+// O uso da Mediana de Três garante que o pior caso (n²) seja evitado
 int medianaDeTresPro(r *vet, int inicio, int fim, met *m) {
     int meio = inicio + (fim - inicio) / 2;
 
@@ -35,8 +35,7 @@ int medianaDeTresPro(r *vet, int inicio, int fim, met *m) {
         trocaPro(&vet[meio], &vet[fim], m);
     }
 
-    // O elemento do meio agora é a nossa mediana (o pivô ideal).
-    // Escondemos ele na penúltima posição para particionar o resto.
+    // O elemento do meio agora é a mediana.
     trocaPro(&vet[meio], &vet[fim - 1], m);
 
     return vet[fim - 1].user_id;
