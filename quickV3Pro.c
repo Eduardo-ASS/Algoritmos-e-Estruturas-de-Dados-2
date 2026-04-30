@@ -84,7 +84,7 @@ void quickSortPRO(r *vet, int inicio, int fim, met *m) {
         return;
     }
 
-    // CORREÇÃO: A Mediana de Três exige pelo menos 3 elementos!
+    // A Mediana de Três exige pelo menos 3 elementos
     // Se o pedaço tiver exatamente 2 elementos, ordena direto e encerra.
     if (fim - inicio == 1) {
         m->comparacoes++;
@@ -147,7 +147,7 @@ void avaliaQuickSortPRO(int tamanho) {
     double tempo_total; 
     long long int comp_total, mov_total; 
 
-    // --- TESTE 1: ALEATÓRIO ---
+    // Teste 1: Vetores Aleatórios (Calculando a média de 30)
     tempo_total = 0; comp_total = 0; mov_total = 0;
     
     for (int i = 0; i < 30; i++) {
@@ -184,7 +184,7 @@ void avaliaQuickSortPRO(int tamanho) {
     printf("                   Tempo Medio: %.3f ms | Comp: %lld | Mov: %lld\n", 
            tempo_total / 30.0, comp_total / 30, mov_total / 30);
 
-    // --- TESTE 2: CRESCENTE ---
+    // Teste 2: Vetor Crescente
     r *vet_cres = geraOrdenados(tamanho, 42); 
     met *m_cres = alocaMetricas();
     
@@ -205,7 +205,7 @@ void avaliaQuickSortPRO(int tamanho) {
     liberaVetor(vet_cres); 
     liberaMetricas(m_cres);
 
-    // --- TESTE 3: DECRESCENTE ---
+    // Teste 3: Vetor Decrescente
     r *vet_decres = geraDecrescente(tamanho, 42); 
     met *m_decres = alocaMetricas();
     
@@ -226,7 +226,7 @@ void avaliaQuickSortPRO(int tamanho) {
     liberaVetor(vet_decres); 
     liberaMetricas(m_decres);
 
-    // --- TESTE 4: QUASE ORDENADO ---
+    // Teste 4: Vetor Quase Ordenado (Média de 30 rodadas)
     tempo_total = 0; comp_total = 0; mov_total = 0;
     
     for (int i = 0; i < 30; i++) {
